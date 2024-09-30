@@ -6,7 +6,7 @@ metadata:
   labels: 
     app: front-app
 spec:
-  replicas: 3
+  replicas: 4
   selector:
     matchLabels:
       app: survey-app
@@ -17,6 +17,6 @@ spec:
     spec:
       containers:
         - name: survey-app
-          image: ahmedsalama3014/frontend-task:v2
+          image: ahmedsalama3014/frontend-task:v3
           ports:
             - containerPort: 80
