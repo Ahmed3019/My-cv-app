@@ -17,6 +17,6 @@ spec:
     spec:
       containers:
         - name: survey-app
-          image: ahmedsalama3014/frontend-task:v1
+          image: ahmedsalama3014/frontend-task:v2
           ports:
             - containerPort: 80
