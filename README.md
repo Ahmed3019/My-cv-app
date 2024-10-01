@@ -1,147 +1,118 @@
+# My CV Application
 
-# Flask Web Application Deployment using Docker and Kubernetes
+This project is a Frontendweb application designed to display a user's CV. It is containerized using Docker and can be deployed on Kubernetes. The project demonstrates the use of Docker for building images and running containers, and it is set up to work seamlessly with Kubernetes for deployment.
 
-This project demonstrates how to containerize a **Flask** web application using **Docker** and deploy it on a **Kubernetes** cluster. The project follows the DevOps best practices by automating the process of building, pushing the Docker image to a container registry, and deploying it on Kubernetes.
+## Project Structure
 
-## Project Overview
-
-The project consists of the following steps:
-1. **Building the Flask web application**.
-2. **Creating a Dockerfile** to containerize the application.
-3. **Building and pushing the Docker image** to Docker Hub.
-4. **Deploying the Docker image** on a Kubernetes cluster using YAML manifests.
-5. **Accessing the Flask app** via a service exposed on the Kubernetes cluster.
+```
+My-cv-app/
+│
+├── app/
+│   ├── templates/
+│   │   └── index.html  # HTML template for displaying the CV
+│   ├── static/
+│   │   └── css/
+│   │       └── styles.css  # CSS for styling the CV
+│
+├── Dockerfile  # Dockerfile for building the Docker image
+└── docker-compose.yml  # Docker Compose file for running the application
+```
 
 ## Prerequisites
 
-To deploy this project, you will need:
-- **Docker** installed on your local machine.
-- **Kubernetes** cluster (Minikube or any cloud provider like GKE, EKS).
-- **kubectl** command-line tool installed.
-- A **Docker Hub** account (or any other container registry).
-  
-## Setup Instructions
+- Docker
+- Docker Compose
+- Kubernetes (Minikube or any other cluster)
+- Ansible (for automation)
 
-### 1. Clone the Repository
+## Getting Started
+
+1. **Clone the Repository**
+
+   Clone the repository to your local machine:
+
+   ```bash
+   git clone https://github.com/Ahmed3019/My-cv-app.git
+   cd My-cv-app
+   ```
+
+2. **Build the Docker Image**
+
+   Build the Docker image using the following command:
+
+   ```bash
+   docker build -t ahmedsalama3014/frontend-task:v1 .
+   ```
+
+3. **Run the Docker Container**
+
+   You can run the Docker container using:
+
+   ```bash
+   docker run -d --name frontend-task -p 8020:80 ahmedsalama3014/frontend-task:v1
+   ```
+
+4. **Push the Docker Image to Docker Hub**
+
+   Push the Docker image to your Docker Hub account:
+
+   ```bash
+   docker push ahmedsalama3014/frontend-task:v1
+   ```
+
+## Deployment on Kubernetes
+
+To deploy the application on a Kubernetes cluster, you can use the following commands:
 
 ```bash
-git clone https://github.com/Ahmed3019/My-cv-app.git
-cd flask-kubernetes-deployment
+kubectl apply -f k8s/deployment.yaml
+kubectl apply -f k8s/service.yaml
 ```
 
-### 2. Build the Docker Image
+Make sure to replace the image name in the deployment YAML file with `ahmedsalama3014/frontend-task:v1`.
 
-Use the following command to build the Docker image:
+## Ansible Playbook for Automation
 
-```bash
-docker build -t <your-dockerhub-username>/flask-app:latest .
-```
-
-### 3. Push the Image to Docker Hub
-
-Once the image is built, push it to your Docker Hub repository:
-
-```bash
-docker push <your-dockerhub-username>/flask-app:latest
-```
-
-### 4. Deploy to Kubernetes
-
-Apply the Kubernetes deployment and service configuration files:
-
-```bash
-kubectl apply -f deployment.yaml
-kubectl apply -f service.yaml
-```
-
-### 5. Verify the Deployment
-
-Check the status of the Pods and Services:
-
-```bash
-kubectl get pods
-kubectl get svc
-```
-
-Once the service is running, you can access the Flask app through the exposed service IP address.
-
-## Dockerfile
-
-The **Dockerfile** for the Flask web application is structured as follows:
-
-```dockerfile
-FROM python:alpine
-
-WORKDIR /usr/src/app
-
-COPY requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
-
-COPY . .
-
-CMD ["python", "app.py"]
-```
-
-## Kubernetes Deployment
-
-The **deployment.yaml** contains the Kubernetes deployment configuration:
+The following Ansible playbook can be used to automate the Docker build and deployment process:
 
 ```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: flask-app
-spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app: flask-app
-  template:
-    metadata:
-      labels:
-        app: flask-app
-    spec:
-      containers:
-      - name: flask-app
-        image: <your-dockerhub-username>/flask-app:latest
-        ports:
-        - containerPort: 5000
+---
+- name: "Automate Docker Build using Ansible"
+  hosts: localhost
+  tasks:
+    - name: Stop running container
+      command: docker stop frontend-task
+      ignore_errors: yes
+
+    - name: Remove stopped container
+      command: docker rm frontend-task
+      ignore_errors: yes
+
+    - name: Remove used image
+      command: docker rmi ahmedsalama3014/frontend-task:v1
+      ignore_errors: yes
+
+    - name: Build new image
+      command: docker build -t ahmedsalama3014/frontend-task:v1 .
+      args:
+        chdir: /home/control/depi-study/argoCD/My-cv-app
+
+    - name: Push docker image
+      command: docker push ahmedsalama3014/frontend-task:v1
+
+    - name: Run new container
+      command: docker run -d --name frontend-task -p 8020:80 ahmedsalama3014/frontend-task:v1
 ```
 
-## Kubernetes Service
+### Usage
 
-The **service.yaml** file defines the service that exposes the Flask application:
+1. Save the above playbook as `docker_build.yml`.
+2. Run the playbook using:
 
-```yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: flask-app-service
-spec:
-  type: NodePort
-  selector:
-    app: flask-app
-  ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 5000
-      nodePort: 30007
-```
-
-## Accessing the Flask Application
-
-Once deployed, access the Flask app by using the external IP address or NodePort:
-
-```bash
-minikube service flask-app-service
-```
-
-This will open the Flask app in your browser.
+   ```bash
+   ansible-playbook docker_build.yml
+   ```
 
 ## Conclusion
 
-This project provides a step-by-step guide to containerize and deploy a Flask web application on a Kubernetes cluster. It uses Docker to build the container and Kubernetes to manage the deployment, scaling, and service exposure.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This Frontendweb application serves as a simple CV display, showcasing the integration of Docker, Kubernetes, and Ansible for modern application deployment. For further improvements, consider adding features like user authentication or a database for storing multiple CVs.
