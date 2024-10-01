@@ -25,7 +25,7 @@ To deploy this project, you will need:
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/flask-kubernetes-deployment.git
+git clone https://github.com/Ahmed3019/My-cv-app.git
 cd flask-kubernetes-deployment
 ```
 
